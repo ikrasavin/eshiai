@@ -37,7 +37,12 @@ class RegistrationsController extends AppController {
     public function isAuthorized($user){
 
         if ( isset($user['role']) && $user['role'] === 'weights' ){
-            if( $this->action === 'weighIn' || $this->action === 'autoCompetitor') {
+            if( $this->action === 'satelliteweighIn' || $this->action === 'autoCompetitor' ) {
+                return true; //Admin can access every action
+            }
+        }
+	if ( isset($user['role']) && $user['role'] === 'user' ){
+            if( $this->action === 'weighIn' || $this->action === 'autoCompetitor' ) {
                 return true; //Admin can access every action
             }
         }
@@ -650,8 +655,8 @@ function checkIn2( $event_id = null ){
             foreach( $regs as $r ):
 
             	$r['Registration']['weight'] = $this->request->data['Registration']['weight'];
-                $reg['Registration']['approved'] =  1 ;
-                $reg['Registration']['card_verified'] = 1 ;
+                //$reg['Registration']['approved'] =  1 ;
+                //$reg['Registration']['card_verified'] = 1 ;
 
                 $this->Registration->save( $r );
 
@@ -672,7 +677,67 @@ function checkIn2( $event_id = null ){
             . " WHERE Registration.event_id = $event_id AND CONCAT_WS(' ', first_name , last_name) ='$comp_name'"
         );
 
+		if( empty( $competitors)){
+			exit(0);
+		}
+    endif;
+  endif;
+  $this->set(compact( 'event_id','comp_name','competitors'));
 
+ }  //fn
+
+  function satelliteweighIn( $event_id = null, $comp_name = null ){
+
+
+    $competitors = array();
+
+    if( !empty($this->request->data)):
+
+      if( isset($this->request->data['Registration'])):
+		//debug($this->request->data);exit(0);
+      	$this->Registration->contain();
+            $regs = $this->Registration->find('all', array(
+					'conditions' => array(
+            			'Registration.event_id' => $event_id
+                        ,'Registration.rtype' => 'shiai'
+            			,'Registration.competitor_id' => $this->request->data['Registration']['competitor_id']
+            	)
+            ));
+            foreach( $regs as $r ):
+			
+            	$r['Registration']['weight'] = $this->request->data['Registration']['weight'];
+                $r['Registration']['approved'] =  $this->request->data['Registration']['approved'] ;
+                $r['Registration']['card_verified'] = $this->request->data['Registration']['card_verified'] ;
+
+                $this->Registration->save( $r );
+
+            endforeach;
+        $this->Session->setFlash(__('Weight-In Completed for ', true) . $this->request->data['Registration']['name'] );
+
+        elseif( !empty( $this->request->data['Competitor'])):
+
+        $comp_name = $this->request->data['Competitor']['name'];
+
+		$satellite_weighin_filter = $this->event['satellite_weighin_filter'];
+		if(!empty($satellite_weighin_filter)) :
+			$sql = "SELECT DISTINCT Competitor.id, Competitor.first_name, Competitor.last_name, Competitor.comp_city, Competitor.comp_state"
+				." , Competitor.comp_sex, Competitor.comp_dob, Registration.card_type, Registration.card_number, Registration.card_verified"
+				." , Registration.approved, Club.club_name"
+				. " FROM competitors Competitor"
+				 ." JOIN registrations Registration ON Registration.competitor_id = Competitor.id"
+				  ." JOIN clubs  Club ON Competitor.club_id = Club.id"
+				. " WHERE Registration.event_id = $event_id AND CONCAT_WS(' ', first_name , last_name) ='$comp_name' AND $satellite_weighin_filter";
+		else :
+			$sql = "SELECT DISTINCT Competitor.id, Competitor.first_name, Competitor.last_name, Competitor.comp_city, Competitor.comp_state"
+				." , Competitor.comp_sex, Competitor.comp_dob, Registration.card_type, Registration.card_number, Registration.card_verified"
+				." , Registration.approved, Club.club_name"
+				. " FROM competitors Competitor"
+				 ." JOIN registrations Registration ON Registration.competitor_id = Competitor.id"
+				  ." JOIN clubs  Club ON Competitor.club_id = Club.id"
+				. " WHERE Registration.event_id = $event_id AND CONCAT_WS(' ', first_name , last_name) ='$comp_name'";
+		endif;
+		$competitors = $this->Registration->query($sql);
+		
 		if( empty( $competitors)){
 			exit(0);
 		}

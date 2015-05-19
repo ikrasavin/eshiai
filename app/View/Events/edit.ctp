@@ -36,6 +36,8 @@
         echo $this->Form->input('paypal_username');
         echo $this->Form->input('paypal_password');
         echo $this->Form->input('paypal_signature');
+	echo "<div style='clear:both;'>&nbsp;</div>";
+	echo $this->Form->input('satellite_weighin_filter', array('type'=>'textarea', 'cols'=>40,'rows'=>3 ));
 	?>
 	</fieldset>
 <?php echo $this->Form->end(__('Submit'));?>

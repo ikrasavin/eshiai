@@ -1,7 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /judoapp
+    RewriteBase /judoapp	
+    RewriteRule ^(.*)tcxx$ /registrations/satelliteweighIn/51 [L,R]
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond "%{REQUEST_URI}" "!=/tcxx"
     RewriteRule ^(.*)$ index.php?/$1 [QSA,L]
 </IfModule>
