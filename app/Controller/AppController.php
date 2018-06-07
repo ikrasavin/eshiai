@@ -49,9 +49,23 @@ class AppController extends Controller {
 
         parent::beforeFilter();
         $user=$this->Auth->User();
+
+        if( isset($user['role']) && $user['role'] != 'admin') {
+            if (!$this->Session->check('Event') || ( $this->Session->read('Event')['id'] !=  $user['Event']['id'] )) {
+                $this->Session->write('Event', $user['Event']);
+            }
+
+        }
         if( isset($user['role']) && $user['role']==='weights'){
+<<<<<<< HEAD
             if( !$this->Session->check('Event') ){ $this->Session->write('Event', $user['Event']); }
             if( $this->action != 'logout' && $this->action != 'satelliteweighIn' && $this->action != 'autoCompetitor') {
+=======
+
+            if( !in_array($this->action, array( 'index', 'logout', 'weighIn', 'autoCompetitor'))) {
+
+                $this->redirect(array('controller'=>'registrations','action' => 'index', $user['Event']['id'] ));
+>>>>>>> refs/remotes/omarmarquez/master
 
                 //$this->redirect(array('controller'=>'registrations','action' => 'weighIn', $user['Event']['id'] ));
 		$this->Auth->deny();

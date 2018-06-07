@@ -16,11 +16,13 @@
 			<th><?php echo $this->Paginator->sort('rtype');?></th>
 			<th><?php echo $this->Paginator->sort('modified');?></th>
 			<th><?php echo $this->Paginator->sort('weight');?></th>
+ 			<th><?php echo $this->Paginator->sort('weight_in_remote','RW');?></th>
 			<th><?php echo $this->Paginator->sort('age');?></th>
 			<th><?php echo $this->Paginator->sort('rank');?></th>
 			<th><?php echo $this->Paginator->sort('division');?></th>
 			<th colspan=3><?php echo $this->Paginator->sort('extra');?></th>
 			<th><?php echo $this->Paginator->sort('approved');?></th>
+			<th><?php echo $this->Paginator->sort('card_verified');?></th>
 			<th><?php echo $this->Paginator->sort('pool');?></th>
 		</tr>
 	<?php
@@ -58,6 +60,9 @@
             <?php echo $registration['Registration']['weight']; ?>
         </td>
         <td>
+	 <?php echo $html->image( $registration['Registration']['weight_in_remote']?'flag_yellow.gif':'flag_green.gif'); ?>
+        </td>
+        <td>
             <?php echo $registration['Registration']['age']; ?>
         </td>
         <td>
@@ -77,6 +82,9 @@
         </td>
         <td>
             <?php echo $html->image( $registration['Registration']['approved']?'flag_green.gif':'flag_red.gif'); ?>
+        </td>
+        <td>
+            <?php echo $html->image( $registration['Registration']['card_verified']?'flag_green.gif':'flag_red.gif'); ?>
         </td>
         <td>
             <?php echo $html->link($registration['Pool']['pool_name'], array('controller'=> 'pools', 'action'=>'view', $registration['Pool']['id'])); ?>

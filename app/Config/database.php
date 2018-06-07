@@ -67,7 +67,11 @@ class DATABASE_CONFIG {
 		'password' => 'tohkon',
 		'database' => 'judoshiai',
 		'prefix' => '',
+<<<<<<< HEAD
 		//'encoding' => 'utf8',
+=======
+		'encoding' => 'utf8',
+>>>>>>> refs/remotes/omarmarquez/master
 	);
 
 	public $test = array(

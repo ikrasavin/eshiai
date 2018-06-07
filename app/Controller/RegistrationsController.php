@@ -37,12 +37,16 @@ class RegistrationsController extends AppController {
     public function isAuthorized($user){
 
         if ( isset($user['role']) && $user['role'] === 'weights' ){
+<<<<<<< HEAD
             if( $this->action === 'satelliteweighIn' || $this->action === 'autoCompetitor' ) {
                 return true; //Admin can access every action
             }
         }
 	if ( isset($user['role']) && $user['role'] === 'user' ){
             if( $this->action === 'weighIn' || $this->action === 'autoCompetitor' ) {
+=======
+            if( in_array($this->action,  array( 'index', 'weighIn', 'autoCompetitor'))) {
+>>>>>>> refs/remotes/omarmarquez/master
                 return true; //Admin can access every action
             }
         }
@@ -653,11 +657,17 @@ function checkIn2( $event_id = null ){
             	)
             ));
             foreach( $regs as $r ):
-
+				
             	$r['Registration']['weight'] = $this->request->data['Registration']['weight'];
+<<<<<<< HEAD
                 //$reg['Registration']['approved'] =  1 ;
                 //$reg['Registration']['card_verified'] = 1 ;
 
+=======
+            	if($r['Registration']['upSkill'] == "N" && $r['Registration']['upAge'] == "N" && $r['Registration']['upWeight'] == "N"):
+            		$r['Registration']['auto_pool'] = 1 ;
+            	endif;
+>>>>>>> refs/remotes/omarmarquez/master
                 $this->Registration->save( $r );
 
             endforeach;
@@ -670,7 +680,7 @@ function checkIn2( $event_id = null ){
 
         $competitors = $this->Registration->query(
             "SELECT DISTINCT Competitor.id, Competitor.first_name, Competitor.last_name, Competitor.comp_city, Competitor.comp_state"
-            ." , Competitor.comp_sex, Competitor.comp_dob, Club.club_name"
+            ." , Competitor.comp_sex, Competitor.comp_dob, Club.club_name, Registration.card_type, Registration.card_number, Registration.card_verified, Registration.approved"
             . " FROM competitors Competitor"
              ." JOIN registrations Registration ON Registration.competitor_id = Competitor.id"
               ." JOIN clubs  Club ON Competitor.club_id = Club.id"
@@ -1152,7 +1162,7 @@ function checkIn2( $event_id = null ){
 				$r['Registration']['match_wins'] = 0;
 				$r['Registration']['match_loses'] = 0;
 							if(!$r['Registration']['card_type'] ){
-					$r['Registration']['card_type']='UNKNOWN';
+					$r['Registration']['card_type']='OTHER';
 				}
 				if(!$r['Registration']['rtype'] ){
 					$r['Registration']['rtype']='shiai';
@@ -1300,7 +1310,9 @@ function checkIn2( $event_id = null ){
     				while( $regs_total > 0 ){   		
     					$j = $i +1;
     					$reg_data=array(
-    						'approved'		=>0,
+    						'approved'		=> 1,
+    						'aut_pool'		=> 0,
+    						'card_verified'		=> 0,
     						'event_id' 		=> $event_info['id'],
     						'participant_id'=> $partID,
     						'competitor_id' => $comp['Competitor']['id'],
@@ -1579,6 +1591,8 @@ function checkIn2( $event_id = null ){
 					}
                     */
 					$kata_count = 0;
+					$shiai_count = 0;
+					$prevDiv = '';
 					foreach( array(
 						"Please select Competitor $i's division:" => 'shiai',
 						"$i Please select the second division:" => 'shiai',
@@ -1615,12 +1629,57 @@ function checkIn2( $event_id = null ){
 
 						}
 
+						//get 2nd division preference
+						if( $r_type =='shiai') {
+							$up_w = 0;
+							$up_s = 0;
+							$up_a = 0;
+							$shiai_count++;
+							if ( $shiai_count == 1)
+								$firstDiv = $div_name;
+							if ( $shiai_count > 1 && ( $div_name == $firstDiv || $div_name == $prevDiv )) {
+								$prefType = '';
+								switch ($shiai_count) {
+									case 2:
+										$prefType = $row["$i If the second division is the same as the first, what is your preference?"];
+										break;
+									case 3:
+										$prefType = $row["$i If the third division is the same as one of the others, what is your preference?"];
+										break;
+								}
+								switch ( $prefType ) {
+									case 'No preference':
+										$up_w = 1;
+										$up_s = 1;
+										$up_a = 1;
+										break;
+									case 'Up in weight':
+										$up_w = 1;
+										break;
+									case 'Up in age':
+										$up_a = 1;
+										break;
+									case 'Up in rank':
+										$up_s = 1;
+										break;
+								}
+							}
+							$prevDiv = $div_name;
+							
+						}
+						
     					$reg_data=array(
-    					    'rtype'         => $r_type,
-    					    'division'      => $div_name,
-    						'approved'		=>0,
-    						'event_id' 		=> $event_info['id'],
-    						'participant_id'=> $partID,
+ 						'rtype'         => $r_type,
+ 						'division'      => $div_name,
+						'approved'		=> 1,
+						'auto_pool'		=> 0,
+						'card_verified'		=> 0,
+						'upSkill'		=> $up_s == 1 ? 'Y' : 'N',
+						'upAge'			=> $up_a == 1 ? 'Y' : 'N',
+						'upWeight'		=> $up_w == 1 ? 'Y' : 'N',
+ 						#'auto_pool'		=> $up_a == 1 || $up_w ==1 || $up_s == 1 ? 0 : 1,
+						'event_id' 		=> $event_info['id'],
+						'participant_id'=> $partID,
     						'competitor_id' => $comp['Competitor']['id'],
     						'club_name' 	=> $comp['Club']['club_name'],
     						'club_abbr' 	=> $comp['Club']['club_abbr'],
@@ -1633,7 +1692,7 @@ function checkIn2( $event_id = null ){
     						'rank'			=> $row["$i Belt Color"],
     						'payment'		=> $row["Payment Amount"],
     						'paid'  		=> $row["Payment Status"],
-    					    'card_type'		=> $c_type,
+ 						'card_type'		=> $c_type,
     						'card_number'	=> $row["$i Judo Card Number"],
     						'kata_name'     => $r_type === 'kata'?explode(' - ',$row[$div])[0]:'',
     						'kata_partner'  => $k_p

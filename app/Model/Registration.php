@@ -131,7 +131,7 @@ function beforeSave( $options = array() ) {
 		if( $this->data['Registration']['upSkill'] =='Y'
 			||  $this->data['Registration']['upAge'] =='Y'
 			||  $this->data['Registration']['upWeight'] =='Y' ){
-			//$this->data['Registration']['auto_pool'] = 0;
+			$this->data['Registration']['auto_pool'] = 0;
 		}
 		if( isset($this->data['Registration']['pool_id']) && $this->data['Registration']['pool_id'] != 0 ){
 
@@ -174,7 +174,8 @@ function beforeSave( $options = array() ) {
 	$cat = "";
 	$res = $this->query( "SELECT category FROM rank_category " .
 			" WHERE rank='" . $this->data['Registration']['rank'] ."' " .
-					" AND division='" . $this->data['Registration']['division'] ."'"
+					" AND division='" . $this->data['Registration']['division'] ."'" .
+					" AND " .  $this->data['Registration']['age'] . " BETWEEN age_start AND age_end" 
 	);
 	 // debug($this->data['Registration'] ); debug($res); exit(0);
 
